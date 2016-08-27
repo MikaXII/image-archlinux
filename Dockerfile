@@ -1,11 +1,16 @@
 ## -*- docker-image-name: "armbuild/scw-distrib-archlinux:latest" -*-
-FROM armbuild/archlinux-disk:2014-12-02
+# FROM armbuild/archlinux-disk:2014-12-02
+FROM base/archlinux:latest
 MAINTAINER Scaleway <opensource@scaleway.com> (@scaleway)
 
 
 # Environment
-ENV SCW_BASE_IMAGE armbuild/scw-archlinux:2014-12-02
+# ENV SCW_BASE_IMAGE armbuild/scw-archlinux:2014-12-02
 
+# Make sure archlinux-keyring is up to date
+RUN pacman -Sy --noconfirm archlinux-keyring && \
+    pacman-key --populate && \
+    pacman-key --refresh-keys
 
 # Force openssl upgrade first (bad symbol issue)
 RUN pacman -Sy --noconfirm --force openssl
@@ -25,7 +30,6 @@ RUN pacman -Sy --noconfirm \
     htop \
     iptables \
     less \
-    localepurge \
     lsb-release \
     man \
     mg \
@@ -71,7 +75,7 @@ RUN systemctl enable \
 
 
 # packages upgrade
-RUN pacman --noconfirm -Suy
+RUN pacman --noconfirm -Syu
 
 
 # Remove root password
@@ -80,8 +84,6 @@ RUN passwd -d root
 
 # Cleanup
 RUN pacman-db-upgrade \
- && pacman -Rns linux-armv7 --noconfirm \
  && pacman -Sc --noconfirm \
  && rm -rf /var/cache/pacman/pkg \
- && localepurge-config && localepurge \
  && pacman-db-upgrade
